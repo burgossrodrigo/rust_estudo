@@ -1,19 +1,17 @@
+use rust_estudo::{ding, on_off, print_array, print_difference};
 fn main() {
-    let width: i32 = 4;
-    let height: i32 = 7;
-    let depth: i32 = 10;
+    let cords: (f32, f32) = (6.3, 15.0);
 
-    let area = area_calc(width, height);
-    let volume = volume_calc(area, depth);
+    print_difference(cords);
 
-    println!("The area is: {}", area);
-    println!("The volume is: {}", volume);
-}
+    print_array(cords);
 
-fn area_calc(width: i32, height: i32) -> i32 {
-    width * height
-}
+    let series = [1, 1, 2, 3, 5, 8, 13];
 
-fn volume_calc(area: i32, depth: i32) -> i32 {
-    area * depth
+    ding(series);
+
+    let mess = ([3, 4], 3.14, [(false, -3), (true, -100)], 5, "candy");
+
+    on_off(mess.2[1].0)
+
 }
