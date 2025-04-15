@@ -1,10 +1,19 @@
-const STARTING_MISSILES: i32 = 8;
-const READY_AMOUNT:i32 = 2;
-
 fn main() {
+    let width: i32 = 4;
+    let height: i32 = 7;
+    let depth: i32 = 10;
 
-    let (mut missle, mut ready) = (STARTING_MISSILES, READY_AMOUNT);
+    let area = area_calc(width, height);
+    let volume = volume_calc(area, depth);
 
-    println!("Firing {} of my {} missles", missle, ready);
-    println!("Missles left: {}", missle - ready);
+    println!("The area is: {}", area);
+    println!("The volume is: {}", volume);
+}
+
+fn area_calc(width: i32, height: i32) -> i32 {
+    width * height
+}
+
+fn volume_calc(area: i32, depth: i32) -> i32 {
+    area * depth
 }
