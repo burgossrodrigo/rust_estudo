@@ -1,53 +1,47 @@
-use std::{
-    sync::{Arc, Mutex, mpsc},
-    thread,
-};
+use ::tokio;
+use rand::Rng;
 
-use::rand::Rng;
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<String>(32);
 
-fn main() {
-    let (tx, rx) = mpsc::channel::<String>();
+    let worker = tokio::spawn(async move {
+        while let Some(task) = rx.recv().await {
+            println!("Worker got a task: {}", task);
 
-    let rx = Arc::new(Mutex::new(rx));
+            let delay = rand::thread_rng().gen_range(100..=200);
 
-    for workers_id in 1..=3 {
-        let rx_clone = Arc::clone(&rx);
-        thread::spawn(move || {
-            loop {
-                let task = {
-                    let lock = rx_clone.lock().unwrap();
-                    lock.recv()
-                };
+            tokio::time::sleep(tokio::time::Duration::from_millis(delay)).await;
+        }
 
-                match task {
-                    Ok(task) => {
-                        println!("Worker {} got a task: {}", workers_id, task);
+        println!("Worker finished");
+    });
 
-                        let delay = rand::thread_rng().gen_range(100..=500);
-                        thread::sleep(std::time::Duration::from_millis(delay));
-                    }
+    // let tx_clone = tx.clone();
 
-                    Err(err) => {
-                        println!("Worker {} got a error: {:?}", workers_id, err);
-                        break;
-                    }
-                }
+    let num_producers = 3;
+    let mut producer_handles = vec![];
+
+    for producer_id in 0..num_producers {
+        let tx_clone = tx.clone();
+        let producer_handler = tokio::spawn(async move {
+            for i in 0..10 {
+                let task = format!("Task {} from producer {}", i, producer_id);
+                println!("Task {} from producer {} sent", i, producer_id);
+                tx_clone.send(task).await.unwrap();
             }
 
-            println!("Worker {} is done", workers_id);
+            println!("Producer {} finished", producer_id);
         });
+
+        producer_handles.push(producer_handler);
     }
 
-    for i in 1..=10 {
-        let task = format!("Task {}", i);
-        println!("Main thread sending: {}", task);
-        tx.send(task).unwrap();
+    for handler in producer_handles {
+        handler.await.unwrap();
     }
 
     drop(tx);
 
-    thread::sleep(std::time::Duration::from_secs(3));
-    println!("Main thread is done");
+    worker.await.unwrap();
 }
-
-
